@@ -15,6 +15,7 @@ import * as z from "zod";
 import {  useForm} from "react-hook-form";
 import { Button } from "../ui/button";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 
 const formSchema = z.object({
@@ -24,6 +25,7 @@ const formSchema = z.object({
 export const StoreModal = () => {
     const storeModal = useStoreModal();
     const [isLoading, setIsLoading] = useState(false);
+    const router = useRouter();
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema), 
         defaultValues: {
@@ -32,7 +34,25 @@ export const StoreModal = () => {
     });
 
     const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        console.log(values);
+        try {
+            setIsLoading(true);
+            const res = await fetch(`/api/stores`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(values),
+            });
+
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ message: 'Unknown error' }));
+                alert(err.message || 'Failed to create store');
+                return;
+            }
+
+            storeModal.onClose();
+            router.push('/');
+        } finally {
+            setIsLoading(false);
+        }
     }
     
 

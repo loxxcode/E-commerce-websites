@@ -1,35 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from 'next/navigation';
 
 export default function StorePage() {
   const [stores, setStores] = useState([]);
   const [name, setName] = useState("");
+  const router = useRouter();
 
   // Fetch stores
   useEffect(() => {
-    fetch("http://localhost/ecommerce-admin-api/api/store_list.php")
+    fetch("/api/stores")
       .then(res => res.json())
       .then(data => setStores(data.data || []));
   }, []);
 
   // Create store
   const createStore = async () => {
-    const formData = new FormData();
-    formData.append("name", name);
-    formData.append("user_id", 1);
-
-    const res = await fetch(
-      "http://localhost/ecommerce-admin-api/api/store_create.php",
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
+    const res = await fetch('/api/stores', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, user_id: 1 }),
+    });
 
     const data = await res.json();
     alert(data.message);
-    location.reload();
+    router.push('/');
   };
 
   return (
